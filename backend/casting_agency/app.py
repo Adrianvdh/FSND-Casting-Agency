@@ -11,7 +11,7 @@ def create_app(config='casting_agency.config'):
     db = setup_db(app)
 
     # Set up CORS. Allow '*' for origins
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     @app.after_request
     def after_request(response):
