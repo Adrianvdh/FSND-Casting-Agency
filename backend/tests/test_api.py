@@ -1,7 +1,7 @@
 import unittest
 import json
 
-from casting_agency import create_app, db
+from casting_agency import create_app
 
 
 class APITestCase(unittest.TestCase):
@@ -9,7 +9,7 @@ class APITestCase(unittest.TestCase):
 
     def setUp(self):
         """Define test variables and initialize app."""
-        self.app = create_app('tests.config')
+        self.app, self.db = create_app('tests.config')
         self.client = self.app.test_client
 
     def tearDown(self):
