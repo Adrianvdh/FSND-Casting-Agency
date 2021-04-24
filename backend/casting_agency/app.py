@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+from .auth import requires_auth
 from .models import setup_db
 
 
@@ -23,6 +24,13 @@ def create_app(config='casting_agency.config'):
     def get_hello_world():
         return jsonify({
             'message': 'Hello world!'
+        }), 200
+
+    @app.route('/get-movies')
+    @requires_auth(permission='get:movies')
+    def get_movies(jwt):
+        return jsonify({
+            'message': 'Hello world! This resource requires authentication'
         }), 200
 
     return app, db
