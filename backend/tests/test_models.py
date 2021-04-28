@@ -59,7 +59,7 @@ class ActorModelTests(unittest.TestCase):
 
     def test_create_and_read(self):
         actor = Actor(full_name='Brad Pitt', description='Cool guy', date_of_birth=datetime.date(1963, 12, 18),
-                      height=186, gender=Gender.MALE.value, cover_image_url='file.jpg')
+                      height=186, gender=Gender.MALE, cover_image_url='file.jpg')
         actor.insert()
 
         read_actor = Actor.query.filter(Actor.id == actor.id).one_or_none()

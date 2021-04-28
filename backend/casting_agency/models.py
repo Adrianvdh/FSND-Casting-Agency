@@ -90,8 +90,8 @@ class Movie(BaseModel):
 
 
 class Gender(Enum):
-    MALE = "Male"
-    FEMALE = "Female"
+    MALE = 'Male'
+    FEMALE = 'Female'
 
 
 class Actor(BaseModel):
@@ -113,6 +113,6 @@ class Actor(BaseModel):
             'description': self.description,
             'date_of_birth': str(self.date_of_birth),
             'height': self.height,
-            'gender': str(self.gender),
+            'gender': self.gender.value,
             'cover_image_url': self.cover_image_url
         }
