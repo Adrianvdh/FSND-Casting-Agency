@@ -1,46 +1,10 @@
 from enum import Enum
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-
-db = SQLAlchemy(session_options={
-    'expire_on_commit': False
-})
-
-
-def setup_db(app):
-    """
-    Bind the flask application and a SQLAlchemy ORM:
-    https://flask-sqlalchemy.palletsprojects.com/en/2.x/api/#configuration
-    https://flask-sqlalchemy.palletsprojects.com/en/2.x/quickstart/#a-minimal-application
-    https://flask-migrate.readthedocs.io/en/latest/#command-reference
-    """
-
-    db.app = app
-    db.init_app(app)
-
-    # initializes the extension with the standard Flask command-line interface:
-    Migrate(app, db)
-    return db
+from casting_agency.database import BaseModel, db
 
 
 # ----------------------------------------------------------------------------#
 # Models.
 # ----------------------------------------------------------------------------#
-
-class BaseModel(db.Model):
-    __abstract__ = True
-
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
 
 class Casting(BaseModel):
     __tablename__ = 'Casting'

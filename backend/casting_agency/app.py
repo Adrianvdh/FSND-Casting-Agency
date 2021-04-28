@@ -1,18 +1,29 @@
 from flask import Flask, jsonify
-from flask_cors import CORS
 
+from .extensions import db, migrate, cors
 from .auth import requires_auth
-from .models import setup_db
+from .config import DefaultConfig
 
 
-def create_app(config='casting_agency.config'):
+def create_app(config_object=DefaultConfig):
     app = Flask(__name__)
-    app.config.from_object(config)
+    app.config.from_object(config_object)
 
-    db = setup_db(app)
+    register_extensions(app)
+    register_views(app)
 
+    return app
+
+
+def register_extensions(app):
+    db.app = app
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+
+def register_views(app):
     # Set up CORS. Allow '*' for origins
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    cors.init_app(app, resources={r"/*": {"origins": "*"}})
 
     @app.after_request
     def after_request(response):
@@ -32,5 +43,3 @@ def create_app(config='casting_agency.config'):
         return jsonify({
             'message': 'Hello world! This resource requires authentication'
         }), 200
-
-    return app, db

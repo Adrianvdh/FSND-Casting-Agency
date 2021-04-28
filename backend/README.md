@@ -40,19 +40,11 @@ This project has a few key dependencies.
 ## Developer environment setup
 
 ## Environment Vars Setup
-Please create a development and test enironment source files from the `.env-template` file. Thus
-will ensures the application has the correct configuration to run in development mode and to run the tests.
+Please create a development and test environment source files from the `.env-template` file. This
+will ensure the application has the correct configuration to run in development mode and to run the tests.
 
 ```bash
 # .env
-export DB_USER=DB_USER_HERE
-export DB_HOST=DB_HOST_HERE
-export DB_POST=DB_PORT_HERE
-export DB_NAME=DB_NAME_HERE
-```
-
-```bash
-# .env-test
 export DB_USER=DB_USER_HERE
 export DB_HOST=DB_HOST_HERE
 export DB_POST=DB_PORT_HERE
@@ -88,7 +80,7 @@ Setting the `FLASK_APP` variable to `casting_agency` directs flask to use the `c
 ## Flask-Migrate:
 For documentation purposes for the developer:
 
-Create the migration respository (This is only done once - and is already done):
+Create the migration repository (This is only done once - and is already done):
 ```bash
 $ flask db init
 ```
@@ -106,8 +98,6 @@ $ flask db upgrade
 ## Testing
 To run the automated tests, run
 ```
-createdb udacity_casting_agency_test
-source .env-test
 pytest
 ```
 
@@ -131,8 +121,8 @@ Errors are returned as JSON objects in the following format;
 The API will return three error types when a request fails:
 - 400 Bad Request
 - 404 Not Found
-- 405 Methd Not Allowed
-- 422 Unproccessable
+- 405 Method Not Allowed
+- 422 Unprocessable
 - 500 Internal Server Error
 
 ## Endpoints

@@ -1,22 +1,10 @@
 import datetime
-import unittest
 
-from casting_agency import create_app
 from casting_agency.models import Movie, Actor, Genre, Gender
+from tests.utils import BaseTestCase
 
 
-class MovieModelests(unittest.TestCase):
-    """This class represents the trivia test case"""
-
-    def setUp(self):
-        """Define test variables and initialize app."""
-        self.app, self.db = create_app('tests.config')
-        self.client = self.app.test_client
-
-    def tearDown(self):
-        """Executed after reach test"""
-        self.db.session.query(Movie).delete()
-        self.db.session.commit()
+class MovieModelests(BaseTestCase):
 
     def test_create_and_read(self):
         kids = Genre(name='Kids')
@@ -44,18 +32,7 @@ class MovieModelests(unittest.TestCase):
         assert Movie.query.count() == 0
 
 
-class ActorModelTests(unittest.TestCase):
-    """This class represents the trivia test case"""
-
-    def setUp(self):
-        """Define test variables and initialize app."""
-        self.app, self.db = create_app('tests.config')
-        self.client = self.app.test_client
-
-    def tearDown(self):
-        """Executed after reach test"""
-        self.db.session.query(Actor).delete()
-        self.db.session.commit()
+class ActorModelTests(BaseTestCase):
 
     def test_create_and_read(self):
         actor = Actor(full_name='Brad Pitt', description='Cool guy', date_of_birth=datetime.date(1963, 12, 18),
