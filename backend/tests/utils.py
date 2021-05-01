@@ -1,3 +1,5 @@
+import datetime
+
 from flask_testing import TestCase
 
 from casting_agency import create_app
@@ -10,6 +12,7 @@ class BaseTestCase(TestCase):
         return create_app(config_object=TestConfig)
 
     def setUp(self):
+        self.today = datetime.date.today()
         db.create_all()
 
     def tearDown(self):

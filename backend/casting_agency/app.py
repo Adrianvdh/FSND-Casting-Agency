@@ -1,7 +1,8 @@
 from flask import Flask, jsonify
 
+from . import movies
 from .extensions import db, migrate, cors
-from .auth import requires_auth
+from .auth import requires_auth, AuthError
 from .config import DefaultConfig
 
 
@@ -11,6 +12,7 @@ def create_app(config_object=DefaultConfig):
 
     register_extensions(app)
     register_views(app)
+    register_errorhandlers(app)
 
     return app
 
@@ -23,7 +25,11 @@ def register_extensions(app):
 
 def register_views(app):
     # Set up CORS. Allow '*' for origins
+    origins = '*'
     cors.init_app(app, resources={r"/*": {"origins": "*"}})
+    cors.init_app(movies.blueprint, resources={r"/*": {"origins": "*"}})
+    cors.init_app(movies.blueprint, origins=origins)
+    app.register_blueprint(movies.blueprint)
 
     @app.after_request
     def after_request(response):
@@ -39,7 +45,17 @@ def register_views(app):
 
     @app.route('/get-movies')
     @requires_auth(permission='get:movies')
-    def get_movies(jwt):
+    def get_movies():
         return jsonify({
             'message': 'Hello world! This resource requires authentication'
         }), 200
+
+
+def register_errorhandlers(app):
+
+    def errorhandler(error):
+        response = error.to_json()
+        response.status_code = error.status_code
+        return response
+
+    app.errorhandler(AuthError)(errorhandler)

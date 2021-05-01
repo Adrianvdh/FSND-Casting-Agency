@@ -4,6 +4,8 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
+from casting_agency.exceptions import AuthError
+
 """
 https://fsnd-casting.eu.auth0.com/authorize?
   audience=casting-agency-api&
@@ -15,18 +17,6 @@ https://fsnd-casting.eu.auth0.com/authorize?
 AUTH0_DOMAIN = 'fsnd-casting.eu.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'casting-agency-api'
-
-# AuthError Exception
-'''
-AuthError Exception
-A standardized way to communicate auth failure modes
-'''
-
-
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
 
 
 def get_token_auth_header():
@@ -139,7 +129,7 @@ def requires_auth(permission=''):
             token = get_token_auth_header()
             payload = verify_decode_jwt(token)
             check_permissions(permission, payload)
-            return f(payload, *args, **kwargs)
+            return f(*args, **kwargs)
 
         return wrapper
     return requires_auth_decorator
