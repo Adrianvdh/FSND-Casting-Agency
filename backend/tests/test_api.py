@@ -1,5 +1,7 @@
 import json
 from unittest import mock
+
+from casting_agency.extensions import db
 from tests.factories import MovieFactory, GenreFactory
 from tests.mocks import token_response, casting_assistant_payload, casting_director_payload, executive_producer_payload
 from tests.utils import BaseTestCase
@@ -12,12 +14,16 @@ class MoviesAPITest(BaseTestCase):
         self.genre = GenreFactory(name='Kids')
         self.movie_1 = MovieFactory(title='Movie 1', description='Some description', release_date=self.today,
                                     duration=120)
+        db.session.commit()
 
     def test_access(self):
         """
-        Test that acess to this resource is protected.
+        Test that access to this resource is protected.
         """
         res = self.client.get('/api/movies')
+        assert res.status_code == 401
+
+        res = self.client.get(f'/api/movies/{self.movie_1.id}')
         assert res.status_code == 401
 
     @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
@@ -56,4 +62,14 @@ class MoviesAPITest(BaseTestCase):
         data = json.loads(res.data)
         assert data == [self.movie_1.serialize()]
 
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_assistant_payload)
+    def test_get_moviedetail_for_casting_assistant(self):
+        """
+        Test that a casting assistant user may list movies.
+        """
+        res = self.client.get(f'/api/movies/{self.movie_1.id}')
 
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data == self.movie_1.serialize()

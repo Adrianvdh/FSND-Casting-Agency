@@ -16,7 +16,11 @@ class BaseException(Exception):
         return jsonify(rv)
 
 
-
 class AuthError(BaseException):
     """ A standardized way to communicate auth failure modes. """
+    pass
+
+
+class ResourceNotFound(BaseException):
+    """ A standardized way to communicate when a resource is not found. """
     pass

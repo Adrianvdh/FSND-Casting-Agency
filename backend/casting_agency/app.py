@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 
-from . import movies
+from .api import movies
 from .extensions import db, migrate, cors
 from .auth import requires_auth, AuthError
 from .config import DefaultConfig
@@ -27,8 +27,8 @@ def register_views(app):
     # Set up CORS. Allow '*' for origins
     origins = '*'
     cors.init_app(app, resources={r"/*": {"origins": "*"}})
-    cors.init_app(movies.blueprint, resources={r"/*": {"origins": "*"}})
-    cors.init_app(movies.blueprint, origins=origins)
+    cors.init_app(movies.blueprint, origins=origins, resources={r"/*": {"origins": "*"}})
+    # cors.init_app(movies.blueprint, origins=origins)
     app.register_blueprint(movies.blueprint)
 
     @app.after_request
