@@ -16,12 +16,14 @@ class MovieModelTests(BaseTestCase):
 
         read_movie = Movie.query.filter(Movie.id == movie.id).first()
         assert read_movie.serialize() == {
+            'id': movie.id,
             'title': 'Bee Movie',
             'description': 'A movie about bees',
             'genre': 'Kids',
-            'release_date': '2007-05-08',
-            'duration': 90,
-            'cover_image_url': 'file.jpg'
+            'release_date': '8 May 2007',
+            'duration': '1h 30m',
+            'cover_image_url': 'file.jpg',
+            'cast': []
         }
 
     def test_delete(self):
@@ -36,11 +38,12 @@ class ActorModelTests(BaseTestCase):
 
     def test_create_and_read(self):
         actor = ActorFactory(full_name='Brad Pitt', description='Cool guy', date_of_birth=datetime.date(1963, 12, 18),
-                             height=186, gender=Gender.MALE, cover_image_url='file.jpg')
+                             height=186, gender=Gender.Male, cover_image_url='file.jpg')
         db.session.commit()
 
         read_actor = Actor.query.filter(Actor.id == actor.id).one_or_none()
         assert read_actor.serialize() == {
+            'id': actor.id,
             'full_name': 'Brad Pitt',
             'description': 'Cool guy',
             'date_of_birth': '1963-12-18',

@@ -56,7 +56,7 @@ class Movie(BaseModel):
             'title': self.title,
             'description': self.description,
             'genre': str(self.genre),
-            'release_date': self.release_date.strftime('%d %B %Y'),
+            'release_date': self.release_date.strftime('%-d %B %Y'),
             'duration': _minutes_format(self.duration),
             'cover_image_url': self.cover_image_url,
             'cast': [cast.actor.serialize() for cast in self.cast]
