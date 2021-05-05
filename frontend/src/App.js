@@ -19,8 +19,8 @@ function App() {
       <NavBar />
       <div className="container flex-grow-1">
         <Route path="/" exact component={Home} />
-        <Route path="/movies" exact component={Movies} />
-        <Route path="/movies/:movieId" exact component={MovieDetail} />
+        <ProtectedRoute path="/movies" exact component={Movies} />
+        <ProtectedRoute path="/movies/:movieId" exact component={MovieDetail} />
         <ProtectedRoute path="/profile" component={Profile} />
       </div>
     </div>
