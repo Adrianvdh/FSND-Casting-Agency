@@ -46,10 +46,11 @@ class ActorModelTests(BaseTestCase):
             'id': actor.id,
             'full_name': 'Brad Pitt',
             'description': 'Cool guy',
-            'date_of_birth': '1963-12-18',
-            'height': 186,
+            'date_of_birth': '18 December 1963',
+            'height': '1m 86cm',
             'gender': 'Male',
-            'cover_image_url': 'file.jpg'
+            'cover_image_url': 'file.jpg',
+            'movies': []
         }
 
     def test_delete(self):

@@ -9,6 +9,9 @@ Base = declarative_base()
 # Models.
 # ----------------------------------------------------------------------------#
 
+def date_format(date: datetime.date) -> str:
+    return date.strftime('%-d %B %Y')
+
 
 class Genre(BaseModel):
     __tablename__ = 'Genre'
@@ -47,6 +50,17 @@ class Movie(BaseModel):
     genre = db.relationship('Genre', back_populates='movie')
 
     def serialize(self):
+        return {
+            **self.serialize_movie(),
+            **self.serialize_cast(),
+        }
+
+    def serialize_cast(self):
+        return {
+            'cast': [cast.actor.serialize_actor() for cast in self.cast]
+        }
+
+    def serialize_movie(self):
         def _minutes_format(minutes: int) -> str:
             h, m = divmod(minutes, 60)
             return f'{h:d}h {m:02d}m'
@@ -56,10 +70,9 @@ class Movie(BaseModel):
             'title': self.title,
             'description': self.description,
             'genre': str(self.genre),
-            'release_date': self.release_date.strftime('%-d %B %Y'),
+            'release_date': date_format(self.release_date),
             'duration': _minutes_format(self.duration),
             'cover_image_url': self.cover_image_url,
-            'cast': [cast.actor.serialize() for cast in self.cast]
         }
 
 
@@ -83,11 +96,26 @@ class Actor(BaseModel):
 
     def serialize(self):
         return {
+            **self.serialize_actor(),
+            **self.serialize_movies(),
+        }
+
+    def serialize_movies(self):
+        return {
+            'movies': [cast.movie.serialize_movie() for cast in self.movies]
+        }
+
+    def serialize_actor(self):
+        def _height_format(height: int) -> str:
+            h, m = divmod(height, 100)
+            return f'{h:d}m {m:02d}cm'
+
+        return {
             'id': self.id,
             'full_name': self.full_name,
             'description': self.description,
-            'date_of_birth': str(self.date_of_birth),
-            'height': self.height,
+            'date_of_birth': date_format(self.date_of_birth),
+            'height': _height_format(self.height),
             'gender': self.gender.value,
             'cover_image_url': self.cover_image_url
         }

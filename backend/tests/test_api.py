@@ -66,9 +66,9 @@ class MoviesAPITest(BaseTestCase):
 
     @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
     @mock.patch('casting_agency.auth.verify_decode_jwt', casting_assistant_payload)
-    def test_get_moviedetail_for_casting_assistant(self):
+    def test_get_movie_detail_for_casting_assistant(self):
         """
-        Test that a casting assistant user may list movies.
+        Test that a casting assistant user retrieve a movie detail.
         """
         res = self.client.get(f'/api/movies/{self.movie_1.id}')
 
@@ -128,3 +128,15 @@ class ActorsAPITest(BaseTestCase):
         assert res.status_code == 200
         data = json.loads(res.data)
         assert data == [self.actor.serialize()]
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_assistant_payload)
+    def test_get_actor_detail_for_casting_assistant(self):
+        """
+        Test that a casting assistant user retrieve an actor detail.
+        """
+        res = self.client.get(f'/api/actors/{self.actor.id}')
+
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert data == self.actor.serialize()

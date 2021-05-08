@@ -20,7 +20,6 @@ const Movies = () => {
           })
           .then(res => {
             const movies = res.data;
-            console.log(movies)
             setMovies(movies);
           })
           .catch(err => console.log(err));
