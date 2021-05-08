@@ -2,11 +2,12 @@ import React, {useEffect, useState} from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import axios from "axios";
 import MovieCard from '../components/MovieCard';
+import ActorCard from "../components/ActorCard";
 
-const Movies = () => {
-  const serverUrl = process.env.REACT_APP_SERVER_URL + '/api/movies';
+const Actors = () => {
+  const serverUrl = process.env.REACT_APP_SERVER_URL + '/api/actors';
   const { getAccessTokenSilently } = useAuth0();
-  const [movies, setMovies] = useState([]);
+  const [actors, setActors] = useState([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -19,8 +20,8 @@ const Movies = () => {
             }
           })
           .then(res => {
-            const movies = res.data;
-            setMovies(movies);
+            const actors = res.data;
+            setActors(actors);
           })
           .catch(err => console.log(err));
       })
@@ -31,14 +32,14 @@ const Movies = () => {
 
   return (
       <>
-        <h2 className="mb-5 mt-4">🎥 What to watch</h2>
+        <h2 className="mb-5 mt-4">🎥 Who to look for</h2>
         <div className="d-flex flex-wrap">
-        {movies.map((movie, index) => (
-            <MovieCard key={index} movie={movie} />
+        {actors.map((actor, index) => (
+            <ActorCard key={index} actor={actor} />
         ))}
         </div>
       </>
   );
 }
 
-export default Movies;
+export default Actors;

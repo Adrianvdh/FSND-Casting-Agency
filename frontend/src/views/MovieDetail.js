@@ -5,7 +5,7 @@ import {useParams} from "react-router-dom";
 import ActorCard from "../components/ActorCard";
 import {Spinner} from "../components";
 
-const Movie = () => {
+const MovieDetail = () => {
   const { movieId } = useParams();
   const serverUrl = process.env.REACT_APP_SERVER_URL + `/api/movies/${movieId}`;
   const { getAccessTokenSilently } = useAuth0();
@@ -90,4 +90,4 @@ const Movie = () => {
   );
 }
 
-export default Movie;
+export default MovieDetail;

@@ -1,6 +1,7 @@
-import Home from './Home';
 import Movies from './Movies'
 import Profile from './Profile';
-import MovieDetail from "./Movie";
+import MovieDetail from "./MovieDetail";
+import Actors from "./Actors";
+import ActorDetail from "./ActorDetail";
 
-export { Home, Profile, Movies, MovieDetail };
+export { Profile, Movies, MovieDetail, Actors, ActorDetail };
