@@ -1,7 +1,7 @@
-import { Route, Switch } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import ProtectedRoute from './auth/protected-route';
-import { Home, Profile } from './views'
+import { Home, Profile, Movies, MovieDetail } from './views'
 import { NavBar, Spinner } from './components';
 
 import './App.css';
@@ -18,10 +18,10 @@ function App() {
     <div id="app" className="d-flex flex-column h-100">
       <NavBar />
       <div className="container flex-grow-1">
-        <Switch>
-          <Route path="/" exact component={Home} />
-          <ProtectedRoute path="/profile" component={Profile} />
-        </Switch>
+        <Route path="/" exact component={Home} />
+        <ProtectedRoute path="/movies" exact component={Movies} />
+        <ProtectedRoute path="/movies/:movieId" exact component={MovieDetail} />
+        <ProtectedRoute path="/profile" component={Profile} />
       </div>
     </div>
   );

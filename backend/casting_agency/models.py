@@ -1,55 +1,13 @@
+import datetime
 from enum import Enum
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from casting_agency.database import BaseModel, db
+from sqlalchemy.ext.declarative import declarative_base
 
-db = SQLAlchemy(session_options={
-    'expire_on_commit': False
-})
-
-
-def setup_db(app):
-    """
-    Bind the flask application and a SQLAlchemy ORM:
-    https://flask-sqlalchemy.palletsprojects.com/en/2.x/api/#configuration
-    https://flask-sqlalchemy.palletsprojects.com/en/2.x/quickstart/#a-minimal-application
-    https://flask-migrate.readthedocs.io/en/latest/#command-reference
-    """
-
-    db.app = app
-    db.init_app(app)
-
-    # initializes the extension with the standard Flask command-line interface:
-    Migrate(app, db)
-    return db
-
+Base = declarative_base()
 
 # ----------------------------------------------------------------------------#
 # Models.
 # ----------------------------------------------------------------------------#
-
-class BaseModel(db.Model):
-    __abstract__ = True
-
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-
-class Casting(BaseModel):
-    __tablename__ = 'Casting'
-
-    movie_id = db.Column(db.Integer, db.ForeignKey('Movie.id'), primary_key=True)
-    actor_id = db.Column(db.Integer, db.ForeignKey('Actor.id'), primary_key=True)
-
-    movie = db.relationship('Movie', back_populates='casting')
-    actor = db.relationship('Actor', back_populates='casting')
 
 
 class Genre(BaseModel):
@@ -64,6 +22,16 @@ class Genre(BaseModel):
         return self.name
 
 
+class Cast(BaseModel):
+    __tablename__ = 'Cast'
+
+    movie_id = db.Column(db.Integer, db.ForeignKey('Movie.id'), primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey('Actor.id'), primary_key=True)
+
+    movie = db.relationship('Movie', back_populates='cast')  # back_populates Movie.cast
+    actor = db.relationship('Actor', back_populates='movies')  # back_populates Actor.movies
+
+
 class Movie(BaseModel):
     __tablename__ = 'Movie'
 
@@ -75,23 +43,29 @@ class Movie(BaseModel):
     duration = db.Column(db.Integer())
     cover_image_url = db.Column(db.String(500))
 
-    casting = db.relationship('Casting', back_populates='movie')
+    cast = db.relationship('Cast', back_populates='movie')
     genre = db.relationship('Genre', back_populates='movie')
 
     def serialize(self):
+        def _minutes_format(minutes: int) -> str:
+            h, m = divmod(minutes, 60)
+            return f'{h:d}h {m:02d}m'
+
         return {
+            'id': self.id,
             'title': self.title,
             'description': self.description,
             'genre': str(self.genre),
-            'release_date': str(self.release_date),
-            'duration': self.duration,
-            'cover_image_url': self.cover_image_url
+            'release_date': self.release_date.strftime('%-d %B %Y'),
+            'duration': _minutes_format(self.duration),
+            'cover_image_url': self.cover_image_url,
+            'cast': [cast.actor.serialize() for cast in self.cast]
         }
 
 
 class Gender(Enum):
-    MALE = "Male"
-    FEMALE = "Female"
+    Male = 'Male'
+    Female = 'Female'
 
 
 class Actor(BaseModel):
@@ -105,14 +79,15 @@ class Actor(BaseModel):
     gender = db.Column(db.Enum(Gender))
     cover_image_url = db.Column(db.String(500))
 
-    casting = db.relationship('Casting', back_populates='actor')
+    movies = db.relationship('Cast', back_populates='actor')
 
     def serialize(self):
         return {
+            'id': self.id,
             'full_name': self.full_name,
             'description': self.description,
             'date_of_birth': str(self.date_of_birth),
             'height': self.height,
-            'gender': str(self.gender),
+            'gender': self.gender.value,
             'cover_image_url': self.cover_image_url
         }

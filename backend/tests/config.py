@@ -1,1 +1,7 @@
-from casting_agency.config import *  # noqa: F401, F403
+from casting_agency.config import BaseConfig
+
+
+class TestConfig(BaseConfig):
+    DEBUG = True
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'

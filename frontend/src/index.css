@@ -1,13 +1,35 @@
-body {
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap');
+
+* {
+
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+h2 {
+  font-weight: 300;
+}
+
+
+.movie-card {
+  color: black;
+  margin: 0 1rem 2rem 0;
+  width: 150px;
+  max-width: 150px;
+}
+
+.movie-card.card {
+  border: 0;
+}
+
+.movie-card .card-img-top {
+  border-radius: 10px;
+}
+.movie-card .card-body {
+  padding: .5rem 0 0 0;
 }
