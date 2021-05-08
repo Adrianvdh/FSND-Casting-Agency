@@ -1,11 +1,10 @@
 import { Route } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import ProtectedRoute from './auth/protected-route';
-import { Home, Profile, Movies, MovieDetail } from './views'
+import { Home, Profile, Movies, MovieDetail, Actors } from './views'
 import { NavBar, Spinner } from './components';
 
 import './App.css';
-
 
 function App() {
   const { isLoading } = useAuth0();
@@ -21,6 +20,7 @@ function App() {
         <Route path="/" exact component={Home} />
         <ProtectedRoute path="/movies" exact component={Movies} />
         <ProtectedRoute path="/movies/:movieId" exact component={MovieDetail} />
+        <ProtectedRoute path="/actors" exact component={Actors} />
         <ProtectedRoute path="/profile" component={Profile} />
       </div>
     </div>

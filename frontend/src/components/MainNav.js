@@ -10,6 +10,9 @@ const MainNav = () => {
       <NavLink to="/movies/" exact className="nav-link" activeClassName="router-link-exact-active">
         Movies
       </NavLink>
+      <NavLink to="/actors/" exact className="nav-link" activeClassName="router-link-exact-active">
+        Actors
+      </NavLink>
     </div>
   );
 }
