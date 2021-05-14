@@ -1,8 +1,10 @@
-from flask import Blueprint, jsonify
+from datetime import datetime, date
+
+from flask import Blueprint, jsonify, request
 
 from casting_agency.auth import requires_auth
-from casting_agency.exceptions import ResourceNotFound
-from casting_agency.models import Movie
+from casting_agency.exceptions import ResourceNotFound, BadRequest, InternalServerError
+from casting_agency.models import Movie, Genre
 
 blueprint = Blueprint('movies', __name__)
 
@@ -24,3 +26,63 @@ def get_movie(movie_id):
             'description': 'Resource not found!'
         }, 404)
     return jsonify(movie.serialize())
+
+
+@blueprint.route('/api/movies', methods=('POST',))
+@requires_auth(permission='post:movies')
+def post_movie():
+    body = request.get_json()
+    if not body:
+        raise BadRequest('You must include a body!')
+
+    title = body.get('title', None)
+    description = body.get('description', None)
+    genre = body.get('genre', None)
+    release_date = body.get('release_date', None)
+    duration = body.get('duration', None)
+    cover_image_url = body.get('cover_image_url', None)
+
+    errors = []
+    if not title:
+        errors.append({'title': 'Title field cannot be blank!'})
+    if not description:
+        errors.append({'description': 'Description field cannot be blank!'})
+    if not genre:
+        errors.append({'genre': 'Genre field cannot be blank!'})
+    if not release_date:
+        errors.append({'release_date': 'Release date field cannot be blank!'})
+    if not duration:
+        errors.append({'duration': 'Duration field cannot be blank!'})
+    if not cover_image_url:
+        errors.append({'cover_image_url': 'Cover image URL field cannot be blank!'})
+
+    if release_date:
+        try:
+            release_date: date = datetime.strptime(release_date, '%Y-%m-%d').date()
+        except Exception:
+            errors.append({'release_date': 'The release date should be in the format YYYY-MM-DD!'})
+
+    if len(errors) > 0:
+        raise BadRequest(errors)
+
+    try:
+        genre_q = Genre.query.filter(Genre.name == genre).one_or_none()
+        if not genre_q:
+            genre = Genre(name=genre)
+            genre.insert()
+
+        movie = Movie(
+            title=title,
+            description=description,
+            genre=genre_q,
+            release_date=release_date,
+            duration=duration,
+            cover_image_url=cover_image_url
+        )
+        movie.insert()
+        return jsonify({
+            'success': True,
+            'created': movie.id
+        }), 201
+    except Exception:
+        raise InternalServerError('An internal server error occurred when saving the movie.')
