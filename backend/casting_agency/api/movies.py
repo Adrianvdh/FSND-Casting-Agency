@@ -86,3 +86,17 @@ def post_movie():
         }), 201
     except Exception:
         raise InternalServerError('An internal server error occurred when saving the movie.')
+
+
+@blueprint.route('/api/movies/<movie_id>', methods=('DELETE',))
+@requires_auth(permission='delete:movies')
+def delete_movie(movie_id):
+    movie = Movie.query.filter(Movie.id == movie_id).first()
+    if not movie:
+        raise ResourceNotFound('Movie not found!')
+    Movie.query.filter(Movie.id == movie_id).delete()
+    return jsonify({
+        'success': True,
+        'delete': movie_id
+    }), 200
+

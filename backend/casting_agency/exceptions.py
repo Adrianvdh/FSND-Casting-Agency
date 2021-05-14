@@ -27,6 +27,7 @@ class AuthError(APIException):
 
 
 class ResourceNotFound(APIException):
+    error = 'Resource Not Found'
     status_code = 404
 
 

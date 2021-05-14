@@ -191,6 +191,33 @@ class MoviesAPITest(BaseTestCase):
             ]
         }
 
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_delete_movie(self):
+        def movie_exists(m_id: int) -> bool:
+            return db.session.query(Movie.query.filter(Movie.id == m_id).exists()).scalar()
+
+        movie_id = self.movie_1.id
+        assert movie_exists(movie_id)
+
+        res = self.client.delete(f'/api/movies/{movie_id}')
+
+        assert res.status_code == 200
+        assert not movie_exists(movie_id)
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_delete_movie_not_found(self):
+        res = self.client.delete(f'/api/movies/{123}')
+
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Resource Not Found',
+            'message': 'Movie not found!'
+        }
+
 
 class ActorsAPITest(BaseTestCase):
 
