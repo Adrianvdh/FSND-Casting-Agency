@@ -22,8 +22,8 @@ class APIException(Exception):
 
 
 class AuthError(APIException):
-    """ A standardized way to communicate auth failure modes. """
-    pass
+    error = 'Unauthorized'
+    status_code = 401
 
 
 class ResourceNotFound(APIException):
