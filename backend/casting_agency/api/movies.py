@@ -109,3 +109,34 @@ def delete_movie(movie_id):
         'delete': movie_id
     }), 200
 
+
+@blueprint.route('/api/movies/<movie_id>', methods=('PATCH',))
+@requires_auth(permission='patch:movies')
+def update_movie(movie_id):
+    movie = Movie.query.filter(Movie.id == movie_id).first()
+    if not movie:
+        raise ResourceNotFound('Movie not found!')
+
+    body = validate_body()
+    cover_image_url, description, duration, genre, release_date, title = validate_movie_request(body)
+
+    try:
+        genre_obj = Genre.query.filter(Genre.name == genre).one_or_none()
+        if not genre_obj:
+            genre_obj = Genre(name=genre)
+            genre_obj.insert()
+
+        movie.title = title
+        movie.description = description
+        movie.genre = genre_obj
+        movie.release_date = release_date
+        movie.duration = duration
+        movie.cover_image_url = cover_image_url
+        movie.update()
+
+        return jsonify({
+            'success': True,
+            'updated': movie.id
+        }), 200
+    except Exception as e:
+        raise InternalServerError('An internal server error occurred when updating the movie.')

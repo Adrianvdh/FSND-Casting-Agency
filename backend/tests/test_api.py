@@ -217,6 +217,121 @@ class MoviesAPITest(BaseTestCase):
             'message': 'Movie not found!'
         }
 
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}', json={
+            'title': 'Fly Movie',
+            'description': 'A movie about flies',
+            'genre': 'Horror',
+            'release_date': '2007-03-03',
+            'duration': 95,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 200
+        movie = Movie.query.filter(Movie.id == movie_id).first()
+
+        data = json.loads(res.data)
+        assert data['success']
+        assert data['updated'] == movie_id
+        assert movie.serialize() == {
+            'id': movie_id,
+            'title': 'Fly Movie',
+            'description': 'A movie about flies',
+            'genre': 'Horror',
+            'release_date': '3 March 2007',
+            'duration': '1h 35m',
+            'cover_image_url': 'file.jpg',
+            'cast': []
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie_no_body(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}')
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': 'You must include a body!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie_required_fields(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}', json={
+            'title': '',
+            'description': '',
+            'genre': '',
+            'release_date': '',
+            'duration': '',
+            'cover_image_url': ''
+        })
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'title': 'Title field cannot be blank!'},
+                {'description': 'Description field cannot be blank!'},
+                {'genre': 'Genre field cannot be blank!'},
+                {'release_date': 'Release date field cannot be blank!'},
+                {'duration': 'Duration field cannot be blank!'},
+                {'cover_image_url': 'Cover image URL field cannot be blank!'},
+            ]
+        }
 
 class ActorsAPITest(BaseTestCase):
 
