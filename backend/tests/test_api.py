@@ -2,8 +2,10 @@ import datetime
 import json
 from unittest import mock
 
+from sqlalchemy import desc
+
 from casting_agency.extensions import db
-from casting_agency.models import Gender
+from casting_agency.models import Gender, Movie, Genre
 from tests.factories import MovieFactory, GenreFactory, ActorFactory
 from tests.mocks import token_response, casting_assistant_payload, casting_director_payload, executive_producer_payload
 from tests.utils import BaseTestCase
@@ -76,6 +78,260 @@ class MoviesAPITest(BaseTestCase):
         data = json.loads(res.data)
         assert data == self.movie_1.serialize()
 
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_post_movie(self):
+        body = {
+            'title': 'Bee Movie',
+            'description': 'A movie about beets',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        }
+
+        res = self.client.post(f'/api/movies', json=body)
+
+        assert res.status_code == 201
+
+        movie = Movie.query.order_by(desc(Movie.id)).first()
+        data = json.loads(res.data)
+        assert data['success']
+        assert data['created'] == movie.id
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_post_movie_new_genre(self):
+        def genre_exists(name) -> bool:
+            return db.session.query(Genre.query.filter(Genre.name == name).exists()).scalar()
+
+        assert not genre_exists('Kids Adventure')
+        body = {
+            'title': 'Bee Movie',
+            'description': 'A movie about beets',
+            'genre': 'Kids Adventure',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        }
+
+        res = self.client.post(f'/api/movies', json=body)
+
+        assert res.status_code == 201
+        assert genre_exists('Kids Adventure')
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_post_movie_with_invalid_release_date(self):
+        body = {
+            'title': 'Bee Movie',
+            'description': 'A movie about beets',
+            'genre': 'Kids',
+            'release_date': '2007/12/12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        }
+
+        res = self.client.post(f'/api/movies', json=body)
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'release_date': 'The release date should be in the format YYYY-MM-DD!'}
+            ]
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_post_movie_no_body(self):
+
+        res = self.client.post(f'/api/movies')
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': 'You must include a body!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_post_movie_required_fields(self):
+        body = {
+            'title': '',
+            'description': '',
+            'genre': '',
+            'release_date': '',
+            'duration': '',
+            'cover_image_url': ''
+        }
+
+        res = self.client.post(f'/api/movies', json=body)
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'title': 'Title field cannot be blank!'},
+                {'description': 'Description field cannot be blank!'},
+                {'genre': 'Genre field cannot be blank!'},
+                {'release_date': 'Release date field cannot be blank!'},
+                {'duration': 'Duration field cannot be blank!'},
+                {'cover_image_url': 'Cover image URL field cannot be blank!'},
+            ]
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_delete_movie(self):
+        def movie_exists(m_id: int) -> bool:
+            return db.session.query(Movie.query.filter(Movie.id == m_id).exists()).scalar()
+
+        movie_id = self.movie_1.id
+        assert movie_exists(movie_id)
+
+        res = self.client.delete(f'/api/movies/{movie_id}')
+
+        assert res.status_code == 200
+        assert not movie_exists(movie_id)
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_delete_movie_not_found(self):
+        res = self.client.delete(f'/api/movies/{123}')
+
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Resource Not Found',
+            'message': 'Movie not found!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}', json={
+            'title': 'Fly Movie',
+            'description': 'A movie about flies',
+            'genre': 'Horror',
+            'release_date': '2007-03-03',
+            'duration': 95,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 200
+        movie = Movie.query.filter(Movie.id == movie_id).first()
+
+        data = json.loads(res.data)
+        assert data['success']
+        assert data['updated'] == movie_id
+        assert movie.serialize() == {
+            'id': movie_id,
+            'title': 'Fly Movie',
+            'description': 'A movie about flies',
+            'genre': 'Horror',
+            'release_date': '3 March 2007',
+            'duration': '1h 35m',
+            'cover_image_url': 'file.jpg',
+            'cast': []
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie_no_body(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}')
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': 'You must include a body!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_movie_required_fields(self):
+        # Create the movie
+        res = self.client.post(f'/api/movies', json={
+            'title': 'Bee Movie',
+            'description': 'A movie about bees',
+            'genre': 'Kids',
+            'release_date': '2007-12-12',
+            'duration': 90,
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        movie_id = data['created']
+
+        # Update the movie
+        res = self.client.patch(f'/api/movies/{movie_id}', json={
+            'title': '',
+            'description': '',
+            'genre': '',
+            'release_date': '',
+            'duration': '',
+            'cover_image_url': ''
+        })
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'title': 'Title field cannot be blank!'},
+                {'description': 'Description field cannot be blank!'},
+                {'genre': 'Genre field cannot be blank!'},
+                {'release_date': 'Release date field cannot be blank!'},
+                {'duration': 'Duration field cannot be blank!'},
+                {'cover_image_url': 'Cover image URL field cannot be blank!'},
+            ]
+        }
 
 class ActorsAPITest(BaseTestCase):
 

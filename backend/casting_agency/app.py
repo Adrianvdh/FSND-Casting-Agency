@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 
 from .api import movies, actors
+from .exceptions import InternalServerError, BadRequest, ResourceNotFound
 from .extensions import db, migrate, cors
 from .auth import requires_auth, AuthError
 from .config import DefaultConfig
@@ -60,3 +61,6 @@ def register_errorhandlers(app):
         return response
 
     app.errorhandler(AuthError)(errorhandler)
+    app.errorhandler(ResourceNotFound)(errorhandler)
+    app.errorhandler(BadRequest)(errorhandler)
+    app.errorhandler(InternalServerError)(errorhandler)
