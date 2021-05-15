@@ -5,7 +5,7 @@ from unittest import mock
 from sqlalchemy import desc
 
 from casting_agency.extensions import db
-from casting_agency.models import Gender, Movie, Genre
+from casting_agency.models import Gender, Movie, Genre, Actor
 from tests.factories import MovieFactory, GenreFactory, ActorFactory
 from tests.mocks import token_response, casting_assistant_payload, casting_director_payload, executive_producer_payload
 from tests.utils import BaseTestCase
@@ -333,6 +333,7 @@ class MoviesAPITest(BaseTestCase):
             ]
         }
 
+
 class ActorsAPITest(BaseTestCase):
 
     def setUp(self):
@@ -396,3 +397,237 @@ class ActorsAPITest(BaseTestCase):
         assert res.status_code == 200
         data = json.loads(res.data)
         assert data == self.actor.serialize()
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_post_actor(self):
+        body = {
+            'full_name': 'Brad Pitt',
+            'description': 'A male actor from America',
+            'date_of_birth': '1963-12-18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        }
+
+        res = self.client.post(f'/api/actors', json=body)
+
+        assert res.status_code == 201
+
+        actor = Actor.query.order_by(desc(Actor.id)).first()
+        data = json.loads(res.data)
+        assert data['success']
+        assert data['created'] == actor.id
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_post_actor_with_invalid_date_of_birth(self):
+        body = {
+            'full_name': 'Brad Pitt',
+            'description': 'A male actor from America',
+            'date_of_birth': '1963/12/18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        }
+
+        res = self.client.post(f'/api/actors', json=body)
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'date_of_birth': 'The date_of_birth date should be in the format YYYY-MM-DD!'}
+            ]
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_post_actor_no_body(self):
+
+        res = self.client.post(f'/api/actors')
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': 'You must include a body!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_post_actor_required_fields(self):
+        body = {
+            'full_name': '',
+            'description': '',
+            'date_of_birth': '',
+            'height': '',
+            'gender': '',
+            'cover_image_url': ''
+        }
+
+        res = self.client.post(f'/api/actors', json=body)
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'full_name': 'Full name field cannot be blank!'},
+                {'description': 'Description field cannot be blank!'},
+                {'date_of_birth': 'Date of Birth field cannot be blank!'},
+                {'release_date': 'Height field cannot be blank!'},
+                {'gender': 'Gender field cannot be blank!'},
+                {'cover_image_url': 'Cover image URL field cannot be blank!'},
+            ]
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_delete_actor(self):
+        def actor_exists(a_id: int) -> bool:
+            return db.session.query(Actor.query.filter(Actor.id == a_id).exists()).scalar()
+
+        actor_id = self.actor.id
+        assert actor_exists(actor_id)
+
+        res = self.client.delete(f'/api/actors/{actor_id}')
+
+        assert res.status_code == 200
+        assert not actor_exists(actor_id)
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_delete_actor_not_found(self):
+        res = self.client.delete(f'/api/actors/{123}')
+
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Resource Not Found',
+            'message': 'Actor not found!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_update_actor(self):
+        # Create the actor
+        res = self.client.post(f'/api/actors', json={
+            'full_name': 'Brad Pitt',
+            'description': 'A male actor from America',
+            'date_of_birth': '1963-12-18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        actor_id = data['created']
+
+        # Update the actor
+        res = self.client.patch(f'/api/actors/{actor_id}', json={
+            'full_name': 'William Bradley Pitt',  # new full name
+            'description': 'A male actor from America',
+            'date_of_birth': '1963-12-18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 200
+        actor = Actor.query.filter(Actor.id == actor_id).first()
+
+        data = json.loads(res.data)
+        assert data['success']
+        assert data['updated'] == actor_id
+        assert actor.serialize() == {
+            'id': actor.id,
+            'full_name': 'William Bradley Pitt',  # new full name
+            'description': 'A male actor from America',
+            'date_of_birth': '18 December 1963',
+            'height': '1m 80cm',
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg',
+            'movies': []
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_actor_no_body(self):
+        # Create the actor
+        res = self.client.post(f'/api/actors', json={
+            'full_name': 'Brad Pitt',
+            'description': 'A male actor from America',
+            'date_of_birth': '1963-12-18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        actor_id = data['created']
+
+        # Update the actor
+        res = self.client.patch(f'/api/actors/{actor_id}')
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': 'You must include a body!'
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
+    def test_update_actor_required_fields(self):
+        # Create the actor
+        res = self.client.post(f'/api/actors', json={
+            'full_name': 'Brad Pitt',
+            'description': 'A male actor from America',
+            'date_of_birth': '1963-12-18',
+            'height': 180,
+            'gender': 'Male',
+            'cover_image_url': 'file.jpg'
+        })
+
+        assert res.status_code == 201
+        data = json.loads(res.data)
+        actor_id = data['created']
+
+        # Update the actor
+        res = self.client.patch(f'/api/actors/{actor_id}', json={
+            'full_name': '',
+            'description': '',
+            'date_of_birth': '',
+            'height': '',
+            'gender': '',
+            'cover_image_url': ''
+        })
+
+        assert res.status_code == 400
+
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Bad Request',
+            'message': [
+                {'full_name': 'Full name field cannot be blank!'},
+                {'description': 'Description field cannot be blank!'},
+                {'date_of_birth': 'Date of Birth field cannot be blank!'},
+                {'release_date': 'Height field cannot be blank!'},
+                {'gender': 'Gender field cannot be blank!'},
+                {'cover_image_url': 'Cover image URL field cannot be blank!'},
+            ]
+        }
