@@ -28,13 +28,7 @@ def get_movie(movie_id):
     return jsonify(movie.serialize())
 
 
-@blueprint.route('/api/movies', methods=('POST',))
-@requires_auth(permission='post:movies')
-def post_movie():
-    body = request.get_json()
-    if not body:
-        raise BadRequest('You must include a body!')
-
+def validate_movie_request(body):
     title = body.get('title', None)
     description = body.get('description', None)
     genre = body.get('genre', None)
@@ -64,6 +58,21 @@ def post_movie():
 
     if len(errors) > 0:
         raise BadRequest(errors)
+    return cover_image_url, description, duration, genre, release_date, title
+
+
+def validate_body():
+    body = request.get_json()
+    if not body:
+        raise BadRequest('You must include a body!')
+    return body
+
+
+@blueprint.route('/api/movies', methods=('POST',))
+@requires_auth(permission='post:movies')
+def post_movie():
+    body = validate_body()
+    cover_image_url, description, duration, genre, release_date, title = validate_movie_request(body)
 
     try:
         genre_q = Genre.query.filter(Genre.name == genre).one_or_none()

@@ -98,7 +98,6 @@ class MoviesAPITest(BaseTestCase):
         data = json.loads(res.data)
         assert data['success']
         assert data['created'] == movie.id
-        assert data == self.movie_1.serialize()
 
     @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
