@@ -333,6 +333,7 @@ class MoviesAPITest(BaseTestCase):
             ]
         }
 
+
 class ActorsAPITest(BaseTestCase):
 
     def setUp(self):
@@ -486,4 +487,31 @@ class ActorsAPITest(BaseTestCase):
                 {'gender': 'Gender field cannot be blank!'},
                 {'cover_image_url': 'Cover image URL field cannot be blank!'},
             ]
+        }
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_delete_actor(self):
+        def actor_exists(a_id: int) -> bool:
+            return db.session.query(Actor.query.filter(Actor.id == a_id).exists()).scalar()
+
+        actor_id = self.actor.id
+        assert actor_exists(actor_id)
+
+        res = self.client.delete(f'/api/actors/{actor_id}')
+
+        assert res.status_code == 200
+        assert not actor_exists(actor_id)
+
+    @mock.patch('casting_agency.auth.get_token_auth_header', token_response)
+    @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
+    def test_delete_actor_not_found(self):
+        res = self.client.delete(f'/api/actors/{123}')
+
+        assert res.status_code == 404
+        data = json.loads(res.data)
+        assert data == {
+            'success': False,
+            'error': 'Resource Not Found',
+            'message': 'Actor not found!'
         }

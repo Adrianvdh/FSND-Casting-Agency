@@ -92,3 +92,16 @@ def post_actor():
         }), 201
     except Exception:
         raise InternalServerError('An internal server error occurred when saving the actor.')
+
+
+@blueprint.route('/api/actors/<actor_id>', methods=('DELETE',))
+@requires_auth(permission='delete:actors')
+def delete_actor(actor_id):
+    actor = Actor.query.filter(Actor.id == actor_id).first()
+    if not actor:
+        raise ResourceNotFound('Actor not found!')
+    Actor.query.filter(Actor.id == actor_id).delete()
+    return jsonify({
+        'success': True,
+        'delete': actor_id
+    }), 200
