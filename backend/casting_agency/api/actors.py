@@ -105,3 +105,30 @@ def delete_actor(actor_id):
         'success': True,
         'delete': actor_id
     }), 200
+
+
+@blueprint.route('/api/actors/<actor_id>', methods=('PATCH',))
+@requires_auth(permission='patch:actors')
+def update_actors(actor_id):
+    actor = Actor.query.filter(Actor.id == actor_id).first()
+    if not actor:
+        raise ResourceNotFound('Actor not found!')
+
+    body = validate_body()
+    cover_image_url, date_of_birth, description, full_name, gender, height = validate_actor_request(body)
+
+    try:
+        actor.full_name = full_name
+        actor.description = description
+        actor.date_of_birth = date_of_birth
+        actor.height = height
+        actor.gender = gender
+        actor.cover_image_url = cover_image_url
+        actor.update()
+
+        return jsonify({
+            'success': True,
+            'updated': int(actor_id)
+        }), 200
+    except Exception:
+        raise InternalServerError('An internal server error occurred when updating the actor.')
