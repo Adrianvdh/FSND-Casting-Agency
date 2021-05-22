@@ -9,6 +9,7 @@ Base = declarative_base()
 # Models.
 # ----------------------------------------------------------------------------#
 
+
 def date_format(date: datetime.date) -> str:
     return date.strftime('%-d %B %Y')
 

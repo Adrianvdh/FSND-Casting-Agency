@@ -138,5 +138,5 @@ def update_movie(movie_id):
             'success': True,
             'updated': movie.id
         }), 200
-    except Exception as e:
+    except Exception:
         raise InternalServerError('An internal server error occurred when updating the movie.')

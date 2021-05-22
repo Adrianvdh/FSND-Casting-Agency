@@ -90,7 +90,7 @@ class MoviesAPITest(BaseTestCase):
             'cover_image_url': 'file.jpg'
         }
 
-        res = self.client.post(f'/api/movies', json=body)
+        res = self.client.post('/api/movies', json=body)
 
         assert res.status_code == 201
 
@@ -115,7 +115,7 @@ class MoviesAPITest(BaseTestCase):
             'cover_image_url': 'file.jpg'
         }
 
-        res = self.client.post(f'/api/movies', json=body)
+        res = self.client.post('/api/movies', json=body)
 
         assert res.status_code == 201
         assert genre_exists('Kids Adventure')
@@ -132,7 +132,7 @@ class MoviesAPITest(BaseTestCase):
             'cover_image_url': 'file.jpg'
         }
 
-        res = self.client.post(f'/api/movies', json=body)
+        res = self.client.post('/api/movies', json=body)
 
         assert res.status_code == 400
 
@@ -149,7 +149,7 @@ class MoviesAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_post_movie_no_body(self):
 
-        res = self.client.post(f'/api/movies')
+        res = self.client.post('/api/movies')
 
         assert res.status_code == 400
 
@@ -172,7 +172,7 @@ class MoviesAPITest(BaseTestCase):
             'cover_image_url': ''
         }
 
-        res = self.client.post(f'/api/movies', json=body)
+        res = self.client.post('/api/movies', json=body)
 
         assert res.status_code == 400
 
@@ -221,7 +221,7 @@ class MoviesAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_update_movie(self):
         # Create the movie
-        res = self.client.post(f'/api/movies', json={
+        res = self.client.post('/api/movies', json={
             'title': 'Bee Movie',
             'description': 'A movie about bees',
             'genre': 'Kids',
@@ -265,7 +265,7 @@ class MoviesAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_update_movie_no_body(self):
         # Create the movie
-        res = self.client.post(f'/api/movies', json={
+        res = self.client.post('/api/movies', json={
             'title': 'Bee Movie',
             'description': 'A movie about bees',
             'genre': 'Kids',
@@ -294,7 +294,7 @@ class MoviesAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_update_movie_required_fields(self):
         # Create the movie
-        res = self.client.post(f'/api/movies', json={
+        res = self.client.post('/api/movies', json={
             'title': 'Bee Movie',
             'description': 'A movie about bees',
             'genre': 'Kids',
@@ -410,7 +410,7 @@ class ActorsAPITest(BaseTestCase):
             'cover_image_url': 'file.jpg'
         }
 
-        res = self.client.post(f'/api/actors', json=body)
+        res = self.client.post('/api/actors', json=body)
 
         assert res.status_code == 201
 
@@ -431,7 +431,7 @@ class ActorsAPITest(BaseTestCase):
             'cover_image_url': 'file.jpg'
         }
 
-        res = self.client.post(f'/api/actors', json=body)
+        res = self.client.post('/api/actors', json=body)
 
         assert res.status_code == 400
 
@@ -448,7 +448,7 @@ class ActorsAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
     def test_post_actor_no_body(self):
 
-        res = self.client.post(f'/api/actors')
+        res = self.client.post('/api/actors')
 
         assert res.status_code == 400
 
@@ -471,7 +471,7 @@ class ActorsAPITest(BaseTestCase):
             'cover_image_url': ''
         }
 
-        res = self.client.post(f'/api/actors', json=body)
+        res = self.client.post('/api/actors', json=body)
 
         assert res.status_code == 400
 
@@ -520,7 +520,7 @@ class ActorsAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', casting_director_payload)
     def test_update_actor(self):
         # Create the actor
-        res = self.client.post(f'/api/actors', json={
+        res = self.client.post('/api/actors', json={
             'full_name': 'Brad Pitt',
             'description': 'A male actor from America',
             'date_of_birth': '1963-12-18',
@@ -564,7 +564,7 @@ class ActorsAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_update_actor_no_body(self):
         # Create the actor
-        res = self.client.post(f'/api/actors', json={
+        res = self.client.post('/api/actors', json={
             'full_name': 'Brad Pitt',
             'description': 'A male actor from America',
             'date_of_birth': '1963-12-18',
@@ -593,7 +593,7 @@ class ActorsAPITest(BaseTestCase):
     @mock.patch('casting_agency.auth.verify_decode_jwt', executive_producer_payload)
     def test_update_actor_required_fields(self):
         # Create the actor
-        res = self.client.post(f'/api/actors', json={
+        res = self.client.post('/api/actors', json={
             'full_name': 'Brad Pitt',
             'description': 'A male actor from America',
             'date_of_birth': '1963-12-18',
