@@ -1,7 +1,7 @@
 import datetime
 
 from casting_agency.extensions import db
-from casting_agency.models import Movie, Actor, Genre, Gender
+from casting_agency.models import Movie, Actor, Gender
 from tests.factories import GenreFactory, MovieFactory, ActorFactory
 from tests.utils import BaseTestCase
 

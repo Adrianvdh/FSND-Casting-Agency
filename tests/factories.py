@@ -1,4 +1,3 @@
-from factory import PostGenerationMethodCall, Sequence
 from factory.alchemy import SQLAlchemyModelFactory
 
 from casting_agency.database import db

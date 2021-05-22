@@ -14,4 +14,3 @@ db = SQLAlchemy(session_options={
 
 migrate = Migrate()
 cors = CORS()
-
